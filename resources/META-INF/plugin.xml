@@ -23,7 +23,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
-    <annotator language="JAVA" id="Standards" implementationClass="com.yaniv.bsmchformat.MyAnnotator"/>
+    <annotator language="JAVA" implementationClass="com.yaniv.bsmchformat.MyAnnotator"/>
     <fileDocumentManagerListener implementation="com.yaniv.bsmchformat.MySaveListener"/>
   </extensions>
 

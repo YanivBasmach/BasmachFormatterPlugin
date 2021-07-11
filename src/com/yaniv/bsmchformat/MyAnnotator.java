@@ -1,6 +1,9 @@
 package com.yaniv.bsmchformat;
 
+import com.intellij.codeInsight.actions.ReformatCodeProcessor;
+import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInspection.IntentionAndQuickFixAction;
+import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -10,6 +13,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.SharedPsiElementImplUtil;
+import com.intellij.psi.impl.source.tree.*;
+import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.refactoring.openapi.impl.JavaRenameRefactoringImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,11 +39,25 @@ public class MyAnnotator implements Annotator {
       }
     }
 
-    /*if (psiElement instanceof PsiIfStatement || psiElement instanceof PsiWhileStatement || psiElement instanceof PsiForStatement || psiElement instanceof PsiForeachStatement || psiElement instanceof PsiSwitchStatement) {
-      if (!psiElement.getPrevSibling().getText().matches("\n *\n *")) {
-        annotationHolder.createWarningAnnotation(psiElement.getNode().getFirstChildNode(),"Basmach Standard: No empty line before a control block");
+    if (psiElement.getNode().getElementType() == TokenType.WHITE_SPACE) {
+      PsiElement after = psiElement.getNextSibling();
+      if (after instanceof PsiIfStatement || after instanceof PsiWhileStatement || after instanceof PsiForStatement || after instanceof PsiForeachStatement || after instanceof PsiSwitchStatement) {
+        int lc = newLineCount(psiElement.getText());
+        if (psiElement.getPrevSibling().getNode().getElementType() == JavaTokenType.LBRACE) {
+          if (lc > 1) {
+            annotationHolder.createWarningAnnotation(psiElement.getNode().getTreeNext().getFirstChildNode(), "Basmach Standard: No empty lines before a control statement at the start of a code block");
+          }
+        } else {
+          if (lc != 2) {
+            annotationHolder.createWarningAnnotation(psiElement.getNode().getTreeNext().getFirstChildNode(), "Basmach Standard: One empty line before a control statement");
+            /*  PsiFile file = psiElement.getContainingFile();
+              ((CompositeElement) psiElement.getParent()).replaceChild(psiElement.getNode(),new LeafPsiElement(TokenType.WHITE_SPACE,"\n\n"));
+              new ReformatCodeProcessor(psiElement.getProject(), file, psiElement.getParent().getTextRange(),false).run();
+            */
+          }
+        }
       }
-    }*/
+    }
 
     if (psiElement instanceof PsiVariable) {
       String name = ((PsiVariable) psiElement).getName();
@@ -84,6 +104,20 @@ public class MyAnnotator implements Annotator {
       }
     }
 
+  }
+
+  private boolean shouldHaveBlankLineBefore(PsiElement psiElement) {
+    return newLineCount(psiElement.getPrevSibling().getText()) != 2
+            && psiElement.getPrevSibling().getPrevSibling().getNode().getElementType() != JavaTokenType.LBRACE;
+  }
+
+  private int newLineCount(String text) {
+    final Matcher matcher = Pattern.compile("\n").matcher(text);
+    int count = 0;
+    while (matcher.find()) {
+      count++;
+    }
+    return count;
   }
 
   private void doRename(PsiElement psiElement, String name) {
