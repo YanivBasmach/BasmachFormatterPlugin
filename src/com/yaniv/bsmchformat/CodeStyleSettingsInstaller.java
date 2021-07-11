@@ -21,6 +21,9 @@ public class CodeStyleSettingsInstaller implements ProjectComponent {
     JavaCodeStyleSettings javaSettings = JavaCodeStyleSettings.getInstance(project);
     CodeStyleSettings container = javaSettings.getContainer();
 
+    container.WRAP_WHEN_TYPING_REACHES_RIGHT_MARGIN = true;
+    container.RIGHT_MARGIN = 100;
+
     CommonCodeStyleSettings settings = container.getCommonSettings(JavaLanguage.INSTANCE);
     settings.getIndentOptions().INDENT_SIZE = 2;
     settings.getIndentOptions().KEEP_INDENTS_ON_EMPTY_LINES = true;

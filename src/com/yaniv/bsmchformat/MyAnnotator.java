@@ -44,7 +44,7 @@ public class MyAnnotator implements Annotator {
 
     if (psiElement.getNode().getElementType() == TokenType.WHITE_SPACE) {
       PsiElement after = psiElement.getNextSibling();
-      if (after instanceof PsiIfStatement || after instanceof PsiWhileStatement || after instanceof PsiForStatement || after instanceof PsiForeachStatement || after instanceof PsiSwitchStatement) {
+      if (after instanceof PsiIfStatement || after instanceof PsiReturnStatement || after instanceof PsiWhileStatement || after instanceof PsiForStatement || after instanceof PsiForeachStatement || after instanceof PsiSwitchStatement) {
         int lc = newLineCount(psiElement.getText());
         if (psiElement.getPrevSibling().getNode().getElementType() == JavaTokenType.LBRACE) {
           if (lc > 1) {
@@ -141,6 +141,15 @@ public class MyAnnotator implements Annotator {
             }
           }
         });
+      }
+    }
+
+    if (psiElement instanceof PsiMethod) {
+      PsiReturnStatement[] statements = PsiUtil.findReturnStatements(((PsiMethod) psiElement));
+      if (statements.length > 2) {
+        for (PsiReturnStatement s : statements) {
+          annotationHolder.createWeakWarningAnnotation(s,"Basmach Standards: Try avoiding multiple return statements in a method");
+        }
       }
     }
 
