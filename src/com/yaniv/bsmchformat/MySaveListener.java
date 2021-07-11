@@ -17,8 +17,6 @@ import java.util.Optional;
 
 public class MySaveListener implements FileDocumentManagerListener {
 
-
-
   @Override
   public void beforeDocumentSaving(@NotNull Document document) {
     Optional<Pair<Project,PsiFile>> file = Arrays.stream(ProjectManager.getInstance().getOpenProjects())
@@ -27,9 +25,8 @@ public class MySaveListener implements FileDocumentManagerListener {
             .findAny();
 
     if (file.isPresent() && !PsiErrorElementUtil.hasErrors(file.get().getFirst(),file.get().getSecond().getVirtualFile())) {
+      System.out.println("Reformatting code...");
       new ReformatCodeProcessor(file.get().getFirst(), file.get().getSecond(), null, false).run();
-      new OptimizeImportsProcessor(file.get().getFirst(), file.get().getSecond()).run();
-      new AddBlankLinesProcessor(file.get().getFirst(), file.get().getSecond()).run();
     }
   }
 }

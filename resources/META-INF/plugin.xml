@@ -24,7 +24,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
     <annotator language="JAVA" id="Standards" implementationClass="com.yaniv.bsmchformat.MyAnnotator"/>
-    <predefinedCodeStyle implementation="com.yaniv.bsmchformat.MyCodeStyle"/>
     <fileDocumentManagerListener implementation="com.yaniv.bsmchformat.MySaveListener"/>
   </extensions>
 
@@ -32,4 +31,9 @@
     <!-- Add your actions here -->
   </actions>
 
+  <project-components>
+    <component>
+      <implementation-class>com.yaniv.bsmchformat.CodeStyleSettingsInstaller</implementation-class>
+    </component>
+  </project-components>
 </idea-plugin>
