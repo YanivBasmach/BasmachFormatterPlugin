@@ -16,7 +16,10 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.SharedPsiElementImplUtil;
 import com.intellij.psi.impl.source.tree.*;
 import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
+import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
+import com.intellij.psi.util.PsiUtil;
 import com.intellij.refactoring.openapi.impl.JavaRenameRefactoringImpl;
+import com.intellij.refactoring.rename.inplace.VariableInplaceRenamer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,11 +107,43 @@ public class MyAnnotator implements Annotator {
       }
     }
 
-  }
+    if (psiElement instanceof PsiLiteral) {
+      if (!(psiElement.getParent() instanceof PsiField) && ((PsiLiteral) psiElement).getValue() instanceof Integer) {
+        Annotation a = annotationHolder.createWeakWarningAnnotation(psiElement, "Basmach Standard: Use a constant field for literal values");
+        a.registerFix(new IntentionAndQuickFixAction() {
+          @NotNull
+          @Override
+          public String getName() {
+            return "Introduce constant field";
+          }
 
-  private boolean shouldHaveBlankLineBefore(PsiElement psiElement) {
-    return newLineCount(psiElement.getPrevSibling().getText()) != 2
-            && psiElement.getPrevSibling().getPrevSibling().getNode().getElementType() != JavaTokenType.LBRACE;
+          @NotNull
+          @Override
+          public String getFamilyName() {
+            return "Standards";
+          }
+
+          @Override
+          public void applyFix(@NotNull Project project, PsiFile psiFile, @Nullable Editor editor) {
+            PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
+            int value = (int) ((PsiLiteral) psiElement).getValue();
+            String name = toUpperSnakeCase(nameNumber(value, false));
+            PsiClass cls = PsiUtil.getTopLevelClass(psiElement);
+            if (cls != null) {
+              PsiField field = factory.createField(name, PsiType.INT);
+              field.setInitializer(factory.createExpressionFromText("" + value, null));
+              field.getModifierList().setModifierProperty("static",true);
+              field.getModifierList().setModifierProperty("final", true);
+              PsiExpression element = factory.createExpressionFromText(name, field);
+              psiElement.replace(element);
+              //field.getModifierList().add(factory.createIdentifier())
+              cls.add(field);
+            }
+          }
+        });
+      }
+    }
+
   }
 
   private int newLineCount(String text) {
