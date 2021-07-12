@@ -16,7 +16,7 @@ public class CodeStyleSettingsInstaller implements ProjectComponent {
 
   @Override
   public void projectOpened() {
-    System.out.println("setting up project settings");
+    System.out.println("Applying code style settings according to the Basmach Standards...");
     CodeInsightWorkspaceSettings.getInstance(project).optimizeImportsOnTheFly = true;
     JavaCodeStyleSettings javaSettings = JavaCodeStyleSettings.getInstance(project);
     CodeStyleSettings container = javaSettings.getContainer();

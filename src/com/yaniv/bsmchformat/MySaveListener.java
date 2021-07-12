@@ -24,7 +24,6 @@ public class MySaveListener implements FileDocumentManagerListener {
             .findAny();
 
     if (file.isPresent() && !PsiErrorElementUtil.hasErrors(file.get().getFirst(),file.get().getSecond().getVirtualFile())) {
-      System.out.println("Reformatting code...");
       new ReformatCodeProcessor(file.get().getFirst(), file.get().getSecond(), null, false).run();
     }
   }

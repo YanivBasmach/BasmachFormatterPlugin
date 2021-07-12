@@ -148,7 +148,6 @@ public class MyAnnotator implements Annotator {
               field.getModifierList().setModifierProperty("final", true);
               PsiExpression element = factory.createExpressionFromText(name, field);
               psiElement.replace(element);
-              //field.getModifierList().add(factory.createIdentifier())
               cls.add(field);
 
               ApplicationManager.getApplication().invokeLater(()->{
