@@ -4,11 +4,13 @@ import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInspection.IntentionAndQuickFixAction;
 import com.intellij.codeInspection.ProblemHighlightType;
+import com.intellij.ide.DataManager;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jvm.JvmModifier;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -19,10 +21,14 @@ import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.refactoring.openapi.impl.JavaRenameRefactoringImpl;
+import com.intellij.refactoring.rename.RenameHandler;
+import com.intellij.refactoring.rename.RenameHandlerRegistry;
+import com.intellij.refactoring.rename.inplace.MemberInplaceRenameHandler;
 import com.intellij.refactoring.rename.inplace.VariableInplaceRenamer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,7 +39,7 @@ public class MyAnnotator implements Annotator {
       PsiExpression caseValue = ((PsiSwitchLabelStatement) psiElement).getCaseValue();
 
       if (caseValue instanceof PsiParenthesizedExpression) {
-        warnWithFix(annotationHolder, caseValue.getNode(),"Basmach Standard: Don't use parenthesised expression in case value", "Remove parentheses from case",()->{
+        warnWithFix(annotationHolder, caseValue.getNode(),"Basmach Standard: Don't use parenthesised expression in case value", "Remove parentheses from case",(file)->{
           PsiElement child = ((PsiParenthesizedExpression) caseValue).getExpression();
           if (child != null) {
             caseValue.replace(child);
@@ -48,15 +54,21 @@ public class MyAnnotator implements Annotator {
         int lc = newLineCount(psiElement.getText());
         if (psiElement.getPrevSibling().getNode().getElementType() == JavaTokenType.LBRACE) {
           if (lc > 1) {
-            annotationHolder.createWarningAnnotation(psiElement.getNode().getTreeNext().getFirstChildNode(), "Basmach Standard: No empty lines before a control statement at the start of a code block");
+            warnWithFix(annotationHolder, psiElement.getNode().getTreeNext().getFirstChildNode(), "Basmach Standard: No empty lines before a control statement at the start of a code block", "Remove empty lines", (file)->{
+              ((CompositeElement) psiElement.getParent()).replaceChild(psiElement.getNode(),new LeafPsiElement(TokenType.WHITE_SPACE,"\n"));
+              ApplicationManager.getApplication().invokeLater(()->{
+                new ReformatCodeProcessor(psiElement.getProject(), file, null,false).run();
+              });
+            });
           }
         } else {
           if (lc != 2) {
-            annotationHolder.createWarningAnnotation(psiElement.getNode().getTreeNext().getFirstChildNode(), "Basmach Standard: One empty line before a control statement");
-            /*  PsiFile file = psiElement.getContainingFile();
+            warnWithFix(annotationHolder,psiElement.getNode().getTreeNext().getFirstChildNode(),"Basmach Standard: One empty line before a control statement", "Insert 1 empty line", (file)->{
               ((CompositeElement) psiElement.getParent()).replaceChild(psiElement.getNode(),new LeafPsiElement(TokenType.WHITE_SPACE,"\n\n"));
-              new ReformatCodeProcessor(psiElement.getProject(), file, psiElement.getParent().getTextRange(),false).run();
-            */
+              ApplicationManager.getApplication().invokeLater(()->{
+                new ReformatCodeProcessor(psiElement.getProject(), file, null,false).run();
+              });
+            });
           }
         }
       }
@@ -66,20 +78,20 @@ public class MyAnnotator implements Annotator {
       String name = ((PsiVariable) psiElement).getName();
       if (isConstant((PsiVariable) psiElement)) {
         if (!isUpperSnakeCase(name)) {
-          warnWithFix(annotationHolder,((PsiVariable) psiElement).getNameIdentifier().getNode(), "Basmach Standard: Final variable names must be UPPER_SNAKE_CASE", "Convert to UPPER_SNAKE_CASE", ()->{
+          warnWithFix(annotationHolder,((PsiVariable) psiElement).getNameIdentifier().getNode(), "Basmach Standard: Final variable names must be UPPER_SNAKE_CASE", "Convert to UPPER_SNAKE_CASE", (file)->{
             doRename(psiElement, toUpperSnakeCase(name));
           });
         }
       } else {
         if (!isLowerCamelCase(name)) {
-          warnWithFix(annotationHolder,((PsiVariable) psiElement).getNameIdentifier().getNode(),"Basmach Standard: Variable names must be lowerCamelCase","Convert to lowerCamelCase",()->{
+          warnWithFix(annotationHolder,((PsiVariable) psiElement).getNameIdentifier().getNode(),"Basmach Standard: Variable names must be lowerCamelCase","Convert to lowerCamelCase",(file)->{
             doRename(psiElement, toLowerCamelCase(name));
           });
         }
       }
 
       if (hasDigits(name)) {
-        warnWithFix(annotationHolder,((PsiVariable) psiElement).getNameIdentifier().getNode(),"Basmach Standard: Variable names must not contain numbers","Replace numbers with their name",()->{
+        warnWithFix(annotationHolder,((PsiVariable) psiElement).getNameIdentifier().getNode(),"Basmach Standard: Variable names must not contain numbers","Replace numbers with their name",(file)->{
           String namedNumbers = nameNumbers(name);
           if (isConstant(((PsiVariable) psiElement)) && isUpperSnakeCase(name)) {
             namedNumbers = toUpperSnakeCase(namedNumbers);
@@ -92,7 +104,7 @@ public class MyAnnotator implements Annotator {
     if (psiElement instanceof PsiMethod) {
       String name = ((PsiMethod) psiElement).getName();
       if (!name.equals("<unnamed>") && !isLowerCamelCase(name)) {
-        warnWithFix(annotationHolder,((PsiMethod) psiElement).getNameIdentifier().getNode(), "Basmach Standard: Method names must be lowerCamelCase", "Convert to lowerCamelCase", ()->{
+        warnWithFix(annotationHolder,((PsiMethod) psiElement).getNameIdentifier().getNode(), "Basmach Standard: Method names must be lowerCamelCase", "Convert to lowerCamelCase", (file)->{
           doRename(psiElement,toLowerCamelCase(name));
         });
       }
@@ -101,7 +113,7 @@ public class MyAnnotator implements Annotator {
     if (psiElement instanceof PsiClass) {
       String name = ((PsiClass) psiElement).getQualifiedName();
       if (!isUpperCamelCase(name)) {
-        warnWithFix(annotationHolder,((PsiClass) psiElement).getNameIdentifier().getNode(),"Basmach Standard: Method names must be UpperCamelCase","Convert to UpperCamelCase",()->{
+        warnWithFix(annotationHolder,((PsiClass) psiElement).getNameIdentifier().getNode(),"Basmach Standard: Method names must be UpperCamelCase","Convert to UpperCamelCase",(file)->{
           doRename(psiElement,toUpperCamelCase(name));
         });
       }
@@ -138,6 +150,13 @@ public class MyAnnotator implements Annotator {
               psiElement.replace(element);
               //field.getModifierList().add(factory.createIdentifier())
               cls.add(field);
+
+              ApplicationManager.getApplication().invokeLater(()->{
+                DataContext context = DataManager.getInstance().getDataContext(editor.getComponent());
+                RenameHandler renameHandler = RenameHandlerRegistry.getInstance().getRenameHandler(context);
+                renameHandler.invoke(project, editor, psiFile, context);
+              });
+
             }
           }
         });
@@ -170,7 +189,7 @@ public class MyAnnotator implements Annotator {
     });
   }
 
-  private void warnWithFix(AnnotationHolder holder, ASTNode node, String message, String fixMessage, Runnable fixer) {
+  private void warnWithFix(AnnotationHolder holder, ASTNode node, String message, String fixMessage, Consumer<PsiFile> fixer) {
     Annotation a = holder.createWarningAnnotation(node,message);
     a.registerFix(new IntentionAndQuickFixAction() {
       @NotNull
@@ -187,7 +206,7 @@ public class MyAnnotator implements Annotator {
 
       @Override
       public void applyFix(@NotNull Project project, PsiFile psiFile, @Nullable Editor editor) {
-        fixer.run();
+        fixer.accept(psiFile);
       }
     });
   }
