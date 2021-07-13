@@ -9,6 +9,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.jvm.JvmMethod;
 import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,6 +29,7 @@ import com.intellij.refactoring.rename.inplace.VariableInplaceRenamer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,28 +51,10 @@ public class MyAnnotator implements Annotator {
     }
 
     if (psiElement.getNode().getElementType() == TokenType.WHITE_SPACE) {
-      PsiElement after = psiElement.getNextSibling();
-      if (after instanceof PsiIfStatement || after instanceof PsiReturnStatement || after instanceof PsiWhileStatement || after instanceof PsiForStatement || after instanceof PsiForeachStatement || after instanceof PsiSwitchStatement) {
-        int lc = newLineCount(psiElement.getText());
-        if (psiElement.getPrevSibling().getNode().getElementType() == JavaTokenType.LBRACE) {
-          if (lc > 1) {
-            warnWithFix(annotationHolder, psiElement.getNode().getTreeNext().getFirstChildNode(), "Basmach Standard: No empty lines before a control statement at the start of a code block", "Remove empty lines", (file)->{
-              ((CompositeElement) psiElement.getParent()).replaceChild(psiElement.getNode(),new LeafPsiElement(TokenType.WHITE_SPACE,"\n"));
-              ApplicationManager.getApplication().invokeLater(()->{
-                new ReformatCodeProcessor(psiElement.getProject(), file, null,false).run();
-              });
-            });
-          }
-        } else {
-          if (lc != 2) {
-            warnWithFix(annotationHolder,psiElement.getNode().getTreeNext().getFirstChildNode(),"Basmach Standard: One empty line before a control statement", "Insert 1 empty line", (file)->{
-              ((CompositeElement) psiElement.getParent()).replaceChild(psiElement.getNode(),new LeafPsiElement(TokenType.WHITE_SPACE,"\n\n"));
-              ApplicationManager.getApplication().invokeLater(()->{
-                new ReformatCodeProcessor(psiElement.getProject(), file, null,false).run();
-              });
-            });
-          }
-        }
+      if (isControlStatement(psiElement.getNextSibling())) {
+        checkEmptyLines(annotationHolder, psiElement, psiElement.getPrevSibling(),"Basmach Standard: No empty lines before a control statement at the start of a code block", "Basmach Standard: One empty line before a control statement");
+      } else if (isControlStatement(psiElement.getPrevSibling())) {
+        checkEmptyLines(annotationHolder, psiElement,psiElement.getNextSibling(), "Basmach Standard: No empty lines after a control statement at the end of a code block", "Basmach Standard: One empty line after a control statement");
       }
     }
 
@@ -169,8 +153,57 @@ public class MyAnnotator implements Annotator {
           annotationHolder.createWeakWarningAnnotation(s,"Basmach Standards: Try avoiding multiple return statements in a method");
         }
       }
-    }
 
+      /*PsiElement parent = psiElement.getParent();
+      if (parent instanceof PsiClass) {
+        JvmMethod[] methods = ((PsiClass) parent).findMethodsByName(((PsiMethod) psiElement).getName());
+        if (methods.length > 1) {
+          for (JvmMethod m : Arrays.asList(methods).subList(0,methods.length - 1)) {
+            if (m instanceof PsiMethod) {
+              PsiElement nextSibling = ((PsiMethod) m).getNextSibling().getNextSibling();
+              if (nextSibling instanceof PsiMethod && !((PsiMethod) nextSibling).getName().equals(((PsiMethod) psiElement).getName())) {
+                warnWithFix(annotationHolder, nextSibling.getNode(), "Basmach Standard: Unrelated method between overloaded methods", "Sort methods", (file)->{
+                  for (JvmMethod method : methods) {
+
+                  }
+                });
+                break;
+              }
+            }
+          }
+        }
+      }*/
+    }
+  }
+
+  public void checkEmptyLines(AnnotationHolder holder, PsiElement whitespace, PsiElement possibleBrace, String noEmptyLinesMsg, String oneEmptyLineMsg) {
+    ASTNode nextNode = whitespace.getNode().getTreeNext().findLeafElementAt(0);
+    if (nextNode == null) return;
+    if (possibleBrace == null) return;
+    int lc = newLineCount(whitespace.getText());
+    if (possibleBrace.getNode().getElementType() == JavaTokenType.LBRACE || possibleBrace.getNode().getElementType() == JavaTokenType.RBRACE) {
+      if (lc > 1) {
+        warnWithFix(holder, nextNode, noEmptyLinesMsg, "Remove empty lines", (file)->{
+          ((CompositeElement) whitespace.getParent()).replaceChild(whitespace.getNode(),new LeafPsiElement(TokenType.WHITE_SPACE,"\n"));
+          ApplicationManager.getApplication().invokeLater(()->{
+            new ReformatCodeProcessor(whitespace.getProject(), file, null,false).run();
+          });
+        });
+      }
+    } else {
+      if (lc != 2) {
+        warnWithFix(holder, nextNode, oneEmptyLineMsg, "Insert 1 empty line", (file)->{
+          ((CompositeElement) whitespace.getParent()).replaceChild(whitespace.getNode(),new LeafPsiElement(TokenType.WHITE_SPACE,"\n\n"));
+          ApplicationManager.getApplication().invokeLater(()->{
+            new ReformatCodeProcessor(whitespace.getProject(), file, null,false).run();
+          });
+        });
+      }
+    }
+  }
+
+  private boolean isControlStatement(PsiElement element) {
+    return element instanceof PsiIfStatement || element instanceof PsiReturnStatement || element instanceof PsiWhileStatement || element instanceof PsiForStatement || element instanceof PsiForeachStatement || element instanceof PsiSwitchStatement;
   }
 
   private int newLineCount(String text) {
@@ -181,6 +214,8 @@ public class MyAnnotator implements Annotator {
     }
     return count;
   }
+
+
 
   private void doRename(PsiElement psiElement, String name) {
     ApplicationManager.getApplication().invokeLater(()->{

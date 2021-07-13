@@ -36,4 +36,10 @@
       <implementation-class>com.yaniv.bsmchformat.CodeStyleSettingsInstaller</implementation-class>
     </component>
   </project-components>
+
+  <application-components>
+    <component>
+      <implementation-class>com.yaniv.bsmchformat.TemplateInstaller</implementation-class>
+    </component>
+  </application-components>
 </idea-plugin>
