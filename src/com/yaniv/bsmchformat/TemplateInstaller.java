@@ -12,13 +12,13 @@ public class TemplateInstaller implements ApplicationComponent {
           "#end\n" +
           "$field.type ##\n" +
           "$StringUtil.sanitizeJavaIdentifier($helper.getPropertyName($field, $project))() {\n" +
-          "  return $field.name;\n" +
+          "  return this.$field.name;\n" +
           "}";
   private static final String SETTER_TEMPLATE = "#set($paramName = $helper.getParamName($field, $project))\n" +
           "#if($field.modifierStatic)\n" +
           "static ##\n" +
           "#end\n" +
-          "void update$StringUtil.capitalizeWithJavaBeanConvention($StringUtil.sanitizeJavaIdentifier($helper.getPropertyName($field, $project)))($field.type $paramName) {\n" +
+          "void change$StringUtil.capitalizeWithJavaBeanConvention($StringUtil.sanitizeJavaIdentifier($helper.getPropertyName($field, $project)))($field.type $paramName) {\n" +
           "  #if ($field.name == $paramName)\n" +
           "    #if (!$field.modifierStatic)\n" +
           "      this.##\n" +

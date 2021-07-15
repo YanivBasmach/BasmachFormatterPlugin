@@ -5,11 +5,23 @@
   <vendor email="tchstud21a4172@gmail.com">Yaniv Navon</vendor>
 
   <description>
-    This helpful IntelliJ Plugin will fix and help students use the Basmach standards of Java code.
+    Fixes, marks and helps students write Java code in IntelliJ,
+    following the Basmach standards to Java.
+    <![CDATA[
+      <p>
+      Features:
+      <ul>
+      <li>Custom getter/setter templates (name() and changeName())</li>
+      <li>Warnings with fixes for various standard violations</li>
+      <li>Auto configures code style settings</li>
+      <li>Auto format code on document save</li>
+      </ul>
+      </p>
+    ]]>
   </description>
 
   <change-notes>
-    Change logs will be found here. No changes yet.
+    Change logs will be found here when there are updates. No changes yet.
   </change-notes>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
