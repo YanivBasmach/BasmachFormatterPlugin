@@ -1,11 +1,12 @@
-package com.yaniv.bsmchformat;
+package com.yaniv.formatter;
 
 import com.intellij.codeInsight.generation.GetterTemplatesManager;
 import com.intellij.codeInsight.generation.SetterTemplatesManager;
-import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.openapi.components.BaseComponent;
 import org.jetbrains.java.generate.template.TemplateResource;
+import org.jetbrains.java.generate.template.TemplatesManager;
 
-public class TemplateInstaller implements ApplicationComponent {
+public class TemplateInstaller implements BaseComponent {
 
   private static final String GETTER_TEMPLATE = "#if($field.modifierStatic)\n" +
           "static ##\n" +
@@ -31,12 +32,17 @@ public class TemplateInstaller implements ApplicationComponent {
 
   @Override
   public void initComponent() {
-    TemplateResource getterTemplate = new TemplateResource("Basmach", GETTER_TEMPLATE, true);
-    GetterTemplatesManager.getInstance().addTemplate(getterTemplate);
-    GetterTemplatesManager.getInstance().setDefaultTemplate(getterTemplate);
-    TemplateResource setterTemplate = new TemplateResource("Basmach", SETTER_TEMPLATE, true);
-    SetterTemplatesManager.getInstance().addTemplate(setterTemplate);
-    SetterTemplatesManager.getInstance().setDefaultTemplate(setterTemplate);
+    replaceTemplate(GetterTemplatesManager.getInstance(), GETTER_TEMPLATE);
+    replaceTemplate(SetterTemplatesManager.getInstance(), SETTER_TEMPLATE);
+  }
+
+  private void replaceTemplate(TemplatesManager manager, String template) {
+    TemplateResource prev = manager.findTemplateByName("Basmach");
+    manager.removeTemplate(prev);
+
+    TemplateResource resource = new TemplateResource("Basmach", template, true);
+    manager.addTemplate(resource);
+    manager.setDefaultTemplate(resource);
   }
 
 

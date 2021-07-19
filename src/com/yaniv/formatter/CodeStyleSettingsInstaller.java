@@ -1,14 +1,10 @@
-package com.yaniv.bsmchformat;
+package com.yaniv.formatter;
 
 import com.intellij.codeInsight.CodeInsightWorkspaceSettings;
-import com.intellij.codeInsight.generation.GetterTemplatesManager;
-import com.intellij.codeInsight.generation.SetterTemplatesManager;
-import com.intellij.codeInsight.generation.actions.GenerateGetterAndSetterAction;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.codeStyle.*;
-import org.jetbrains.java.generate.template.TemplateResource;
 
 public class CodeStyleSettingsInstaller implements ProjectComponent {
 
@@ -26,11 +22,11 @@ public class CodeStyleSettingsInstaller implements ProjectComponent {
     CodeStyleSettings container = javaSettings.getContainer();
 
     container.WRAP_WHEN_TYPING_REACHES_RIGHT_MARGIN = true;
-    container.RIGHT_MARGIN = 100;
 
     CommonCodeStyleSettings settings = container.getCommonSettings(JavaLanguage.INSTANCE);
     settings.getIndentOptions().INDENT_SIZE = 2;
     settings.getIndentOptions().KEEP_INDENTS_ON_EMPTY_LINES = true;
+    settings.RIGHT_MARGIN = 100;
 
     settings.SPACE_BEFORE_IF_LBRACE = true;
     settings.SPACE_BEFORE_IF_PARENTHESES = true;

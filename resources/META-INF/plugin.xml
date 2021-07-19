@@ -1,7 +1,7 @@
 <idea-plugin>
-  <id>com.yaniv.bsmchformat</id>
-  <name>Basmach Standards Formatter</name>
-  <version>1.0</version>
+  <id>com.yaniv.formatter</id>
+  <name>Yaniv Standards</name>
+  <version>1.0.1</version>
   <vendor email="tchstud21a4172@gmail.com">Yaniv Navon</vendor>
 
   <description>
@@ -29,14 +29,16 @@
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
        on how to target different products -->
-  <!-- uncomment to enable plugin in all products
+  <!-- uncomment to enable plugin in all products -->
   <depends>com.intellij.modules.lang</depends>
-  -->
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.modules.java</depends>
+
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
-    <annotator language="JAVA" implementationClass="com.yaniv.bsmchformat.MyAnnotator"/>
-    <fileDocumentManagerListener implementation="com.yaniv.bsmchformat.MySaveListener"/>
+    <annotator language="JAVA" implementationClass="com.yaniv.formatter.MyAnnotator"/>
+    <fileDocumentManagerListener implementation="com.yaniv.formatter.MySaveListener"/>
   </extensions>
 
   <actions>
@@ -45,13 +47,12 @@
 
   <project-components>
     <component>
-      <implementation-class>com.yaniv.bsmchformat.CodeStyleSettingsInstaller</implementation-class>
+      <implementation-class>com.yaniv.formatter.CodeStyleSettingsInstaller</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.yaniv.formatter.TemplateInstaller</implementation-class>
     </component>
   </project-components>
 
-  <application-components>
-    <component>
-      <implementation-class>com.yaniv.bsmchformat.TemplateInstaller</implementation-class>
-    </component>
-  </application-components>
+
 </idea-plugin>

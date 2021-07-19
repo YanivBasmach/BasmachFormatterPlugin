@@ -1,4 +1,4 @@
-package com.yaniv.bsmchformat;
+package com.yaniv.formatter;
 
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.openapi.editor.Document;
@@ -6,6 +6,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.PsiErrorElementUtil;
@@ -26,5 +27,35 @@ public class MySaveListener implements FileDocumentManagerListener {
     if (file.isPresent() && !PsiErrorElementUtil.hasErrors(file.get().getFirst(),file.get().getSecond().getVirtualFile())) {
       new ReformatCodeProcessor(file.get().getFirst(), file.get().getSecond(), null, false).run();
     }
+  }
+
+  @Override
+  public void beforeAllDocumentsSaving() {
+
+  }
+
+  @Override
+  public void beforeFileContentReload(@NotNull VirtualFile file, @NotNull Document document) {
+
+  }
+
+  @Override
+  public void fileContentLoaded(@NotNull VirtualFile file, @NotNull Document document) {
+
+  }
+
+  @Override
+  public void fileContentReloaded(@NotNull VirtualFile file, @NotNull Document document) {
+
+  }
+
+  @Override
+  public void fileWithNoDocumentChanged(@NotNull VirtualFile file) {
+
+  }
+
+  @Override
+  public void unsavedDocumentsDropped() {
+
   }
 }

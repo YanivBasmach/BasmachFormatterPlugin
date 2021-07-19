@@ -1,35 +1,26 @@
-package com.yaniv.bsmchformat;
+package com.yaniv.formatter;
 
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
-import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInspection.IntentionAndQuickFixAction;
-import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.ide.DataManager;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.lang.jvm.JvmMethod;
 import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.SharedPsiElementImplUtil;
 import com.intellij.psi.impl.source.tree.*;
-import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
-import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.refactoring.openapi.impl.JavaRenameRefactoringImpl;
 import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.refactoring.rename.RenameHandlerRegistry;
-import com.intellij.refactoring.rename.inplace.MemberInplaceRenameHandler;
-import com.intellij.refactoring.rename.inplace.VariableInplaceRenamer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -104,7 +95,7 @@ public class MyAnnotator implements Annotator {
     }
 
     if (psiElement instanceof PsiLiteral) {
-      if (!(psiElement.getParent() instanceof PsiField) && ((PsiLiteral) psiElement).getValue() instanceof Integer) {
+      if (!(psiElement.getParent() instanceof PsiField) && shouldBeConst(((PsiLiteral) psiElement))) {
         Annotation a = annotationHolder.createWeakWarningAnnotation(psiElement, "Basmach Standard: Use a constant field for literal values");
         a.registerFix(new IntentionAndQuickFixAction() {
           @NotNull
@@ -122,12 +113,11 @@ public class MyAnnotator implements Annotator {
           @Override
           public void applyFix(@NotNull Project project, PsiFile psiFile, @Nullable Editor editor) {
             PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
-            int value = (int) ((PsiLiteral) psiElement).getValue();
-            String name = toUpperSnakeCase(nameNumber(value, false));
+            String name = toUpperSnakeCase(nameLiteral(((PsiLiteral) psiElement).getValue()));
             PsiClass cls = PsiUtil.getTopLevelClass(psiElement);
             if (cls != null) {
-              PsiField field = factory.createField(name, PsiType.INT);
-              field.setInitializer(factory.createExpressionFromText("" + value, null));
+              PsiField field = factory.createField(name, ((PsiExpression) psiElement).getType());
+              field.setInitializer(((PsiExpression) psiElement.copy()));
               field.getModifierList().setModifierProperty("static",true);
               field.getModifierList().setModifierProperty("final", true);
               PsiExpression element = factory.createExpressionFromText(name, field);
@@ -176,10 +166,31 @@ public class MyAnnotator implements Annotator {
     }
   }
 
+  private boolean shouldBeConst(PsiLiteral literal) {
+    if (literal.getValue() instanceof Integer) {
+      int value = (int) literal.getValue();
+      return value < -1 || value > 1;
+    }
+    // TODO: 7/19/2021 add more checks, for example string usage only inside .equals, and anything in a switch case statement
+    return false;
+  }
+
+  private String nameLiteral(Object value) {
+    if (value instanceof Number) {
+      return nameNumber(((Number) value).intValue(), false);
+    } else if (value instanceof String) {
+      return (String) value;
+    } else if (value instanceof Character) {
+      return "c";
+    }
+    return String.valueOf(value);
+  }
+
   public void checkEmptyLines(AnnotationHolder holder, PsiElement whitespace, PsiElement possibleBrace, String noEmptyLinesMsg, String oneEmptyLineMsg) {
     ASTNode nextNode = whitespace.getNode().getTreeNext().findLeafElementAt(0);
     if (nextNode == null) return;
     if (possibleBrace == null) return;
+    if (nextNode.getPsi() instanceof PsiIfStatement && nextNode.getTreeParent().getPsi() instanceof PsiIfStatement) return;
     int lc = newLineCount(whitespace.getText());
     if (possibleBrace.getNode().getElementType() == JavaTokenType.LBRACE || possibleBrace.getNode().getElementType() == JavaTokenType.RBRACE) {
       if (lc > 1) {
@@ -246,7 +257,7 @@ public class MyAnnotator implements Annotator {
   }
 
   private boolean isConstant(PsiVariable variable) {
-    return variable.hasModifier(JvmModifier.FINAL);
+    return variable.hasModifier(JvmModifier.FINAL) || variable.hasModifier(JvmModifier.STATIC);
   }
 
   private String nameNumbers(String name) {
@@ -306,9 +317,10 @@ public class MyAnnotator implements Annotator {
           if (nextUpper) {
             newName += Character.toUpperCase(c);
           } else {
-            newName += c;
+            newName += Character.toLowerCase(c);
           }
-          nextUpper = false;
+          nextUpper = i < name.length() - 1 && Character
+                  .isUpperCase(name.charAt(i + 1)) && Character.isLowerCase(c);
         } else if (c == '_') {
           nextUpper = true;
         }
