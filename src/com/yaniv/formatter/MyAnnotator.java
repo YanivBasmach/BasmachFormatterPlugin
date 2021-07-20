@@ -25,7 +25,8 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MyAnnotator implements Annotator {
+public class MyAnnotator implements Annotator{
+
   @Override
   public void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
     if (psiElement instanceof PsiSwitchLabelStatement) {
@@ -257,6 +258,7 @@ public class MyAnnotator implements Annotator {
   }
 
   private boolean isConstant(PsiVariable variable) {
+    if (variable instanceof PsiResourceVariable) return false;
     return variable.hasModifier(JvmModifier.FINAL) || variable.hasModifier(JvmModifier.STATIC);
   }
 

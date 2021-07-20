@@ -6,7 +6,7 @@ import com.intellij.openapi.components.BaseComponent;
 import org.jetbrains.java.generate.template.TemplateResource;
 import org.jetbrains.java.generate.template.TemplatesManager;
 
-public class TemplateInstaller implements BaseComponent {
+public class AccessorTemplatesInstaller implements BaseComponent {
 
   private static final String GETTER_TEMPLATE = "#if($field.modifierStatic)\n" +
           "static ##\n" +

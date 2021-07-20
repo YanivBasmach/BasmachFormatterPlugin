@@ -1,0 +1,7 @@
+class Foo {
+    private MyObject value;
+
+    public MyObject getValue() {
+        return new MyObject(value);
+    }
+}
