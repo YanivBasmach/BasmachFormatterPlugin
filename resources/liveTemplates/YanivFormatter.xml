@@ -5,6 +5,11 @@
       <option name="JAVA_STATEMENT" value="true" />
     </context>
   </template>
+  <template name="svuid" value="private static final long serialVersionUID = $END$;" description="Creates a serial version ID for Serializable" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
   <template name="readf" value="File $FILEVAR$ = new File($PATH$);&#10;&#10;if (!$FILEVAR$.exists()) {&#10;    try {&#10;        $FILEVAR$.createNewFile();&#10;    } catch (IOException e) {&#10;        e.printStackTrace();&#10;    }&#10;} else {&#10;  try (BufferedReader r = new BufferedReader(new FileReader($FILEVAR$))) {&#10;    $END$&#10;  } catch (IOException e) {&#10;    e.printStackTrace();&#10;  }&#10;}" description="Opens a file for reading" toReformat="true" toShortenFQNames="true">
     <variable name="FILEVAR" expression="" defaultValue="" alwaysStopAt="true" />
     <variable name="PATH" expression="" defaultValue="" alwaysStopAt="true" />

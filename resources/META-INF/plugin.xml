@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>com.yaniv.formatter</id>
   <name>Yaniv Standards</name>
-  <version>1.0.1</version>
+  <version>1.0.3</version>
   <vendor email="tchstud21a4172@gmail.com">Yaniv Navon</vendor>
 
   <description>
@@ -52,6 +52,7 @@
                                                   implementationClass="com.yaniv.formatter.templates.MyPostfixTemplatesProvider"/>
     <defaultLiveTemplatesProvider
             implementation="com.yaniv.formatter.templates.MyLiveTemplatesProvider"/>
+    <constructorBodyGenerator language="JAVA" order="first" implementationClass="com.yaniv.formatter.generators.MyConstructorGenerator"/>
   </extensions>
 
   <actions>

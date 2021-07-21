@@ -77,7 +77,7 @@ public class MyAnnotator implements Annotator{
       }
     }
 
-    if (psiElement instanceof PsiMethod) {
+    if (psiElement instanceof PsiMethod && !((PsiMethod) psiElement).isConstructor()) {
       String name = ((PsiMethod) psiElement).getName();
       if (!name.equals("<unnamed>") && !isLowerCamelCase(name)) {
         warnWithFix(annotationHolder,((PsiMethod) psiElement).getNameIdentifier().getNode(), "Basmach Standard: Method names must be lowerCamelCase", "Convert to lowerCamelCase", (file)->{
@@ -259,6 +259,7 @@ public class MyAnnotator implements Annotator{
 
   private boolean isConstant(PsiVariable variable) {
     if (variable instanceof PsiResourceVariable) return false;
+    if (variable instanceof PsiField && "serialVersionUID".equals(variable.getName())) return false;
     return variable.hasModifier(JvmModifier.FINAL) || variable.hasModifier(JvmModifier.STATIC);
   }
 

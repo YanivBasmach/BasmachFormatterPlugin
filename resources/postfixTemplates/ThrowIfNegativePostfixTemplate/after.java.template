@@ -1,0 +1,7 @@
+class Foo {
+    public void bar(int value) {
+        if (value < 0) {
+            throw new RuntimeException("Value is negative!");
+        }
+    }
+}

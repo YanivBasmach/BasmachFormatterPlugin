@@ -4,7 +4,9 @@ import com.intellij.codeInsight.CodeInsightWorkspaceSettings;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.codeStyle.*;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
+import com.intellij.psi.codeStyle.JavaCodeStyleSettings;
 
 public class CodeStyleSettingsInstaller implements ProjectComponent {
 
@@ -74,7 +76,6 @@ public class CodeStyleSettingsInstaller implements ProjectComponent {
     settings.INDENT_BREAK_FROM_CASE = true;
     settings.INDENT_CASE_FROM_SWITCH = true;
   }
-
 
 
 }

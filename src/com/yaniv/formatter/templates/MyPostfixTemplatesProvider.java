@@ -10,7 +10,9 @@ import java.util.Set;
 public class MyPostfixTemplatesProvider extends JavaPostfixTemplateProvider {
 
   private Set<PostfixTemplate> templates = ContainerUtil.newHashSet(
-          new CopyCtorPostfixTemplate(this)
+          new CopyCtorPostfixTemplate(this),
+          new ThrowIfNegativePostfixTemplate(this),
+          new ThrowIfNullPostfixTemplate(this)
   );
 
   @NotNull
