@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>com.yaniv.formatter</id>
   <name>Yaniv Standards</name>
-  <version>1.0.3</version>
+  <version>1.0.4</version>
   <vendor email="tchstud21a4172@gmail.com">Yaniv Navon</vendor>
 
   <description>
