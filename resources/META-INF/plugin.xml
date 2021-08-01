@@ -1,13 +1,13 @@
 <idea-plugin>
-  <id>com.yaniv.formatter</id>
-  <name>Yaniv Standards</name>
-  <version>1.0.4</version>
-  <vendor email="tchstud21a4172@gmail.com">Yaniv Navon</vendor>
+    <id>com.yaniv.formatter</id>
+    <name>Yaniv Standards</name>
+    <version>1.0.4</version>
+    <vendor email="tchstud21a4172@gmail.com">Yaniv Navon</vendor>
 
-  <description>
-    Fixes, marks and helps students write Java code in IntelliJ,
-    following the Basmach standards to Java.
-    <![CDATA[
+    <description>
+        Fixes, marks and helps students write Java code in IntelliJ,
+        following the Basmach standards to Java.
+        <![CDATA[
       <p>
       Features:
       <ul>
@@ -22,51 +22,59 @@
       </p>
     ]]>
 
-    To use the plugin, just code normally - and the plugin will warn you about any
-    standard violations, and suggest fixes.
-    When the editor loses focus, your code will be automatically formatted.
+        To use the plugin, just code normally - and the plugin will warn you about any
+        standard violations, and suggest fixes.
+        When the editor loses focus, your code will be automatically formatted.
 
-  </description>
+    </description>
 
-  <change-notes>
-    Change logs will be found here when there are updates. No changes yet.
-  </change-notes>
-
-
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="173.0"/>
-
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-       on how to target different products -->
-  <!-- uncomment to enable plugin in all products -->
-  <depends>com.intellij.modules.lang</depends>
-  <depends>com.intellij.modules.platform</depends>
-  <depends>com.intellij.modules.java</depends>
+    <change-notes>
+        Change logs will be found here when there are updates. No changes yet.
+    </change-notes>
 
 
-  <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
-    <annotator language="JAVA" implementationClass="com.yaniv.formatter.MyAnnotator"/>
-    <fileDocumentManagerListener implementation="com.yaniv.formatter.MySaveListener"/>
-    <codeInsight.template.postfixTemplateProvider language="JAVA"
-                                                  implementationClass="com.yaniv.formatter.templates.MyPostfixTemplatesProvider"/>
-    <defaultLiveTemplatesProvider
-            implementation="com.yaniv.formatter.templates.MyLiveTemplatesProvider"/>
-    <constructorBodyGenerator language="JAVA" order="first" implementationClass="com.yaniv.formatter.generators.MyConstructorGenerator"/>
-  </extensions>
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <idea-version since-build="173.0"/>
 
-  <actions>
-    <!-- Add your actions here -->
-  </actions>
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <!-- uncomment to enable plugin in all products -->
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
 
-  <project-components>
-    <component>
-      <implementation-class>com.yaniv.formatter.CodeStyleSettingsInstaller</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.yaniv.formatter.AccessorTemplatesInstaller</implementation-class>
-    </component>
-  </project-components>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <annotator language="JAVA" implementationClass="com.yaniv.formatter.MyAnnotator"/>
+        <fileDocumentManagerListener implementation="com.yaniv.formatter.MySaveListener"/>
+        <codeInsight.template.postfixTemplateProvider language="JAVA"
+                                                      implementationClass="com.yaniv.formatter.templates.MyPostfixTemplatesProvider"/>
+        <defaultLiveTemplatesProvider
+                implementation="com.yaniv.formatter.templates.MyLiveTemplatesProvider"/>
+        <constructorBodyGenerator language="JAVA" order="first"
+                                  implementationClass="com.yaniv.formatter.generators.MyConstructorGenerator"/>
+        <localInspection enabledByDefault="true" displayName="Empty Lines" groupName="Standards"
+                         language="JAVA" implementationClass="com.yaniv.formatter.inspections.EmptyLinesInspector"/>
+        <localInspection enabledByDefault="true" displayName="Unnecessary parentheses in case"
+                         groupName="Standards" language="JAVA"
+                         implementationClass="com.yaniv.formatter.inspections.UnnecessaryParenthesesInCase"/>
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+
+    <project-components>
+        <component>
+            <implementation-class>com.yaniv.formatter.CodeStyleSettingsInstaller
+            </implementation-class>
+        </component>
+        <component>
+            <implementation-class>com.yaniv.formatter.AccessorTemplatesInstaller
+            </implementation-class>
+        </component>
+    </project-components>
 
 
 </idea-plugin>

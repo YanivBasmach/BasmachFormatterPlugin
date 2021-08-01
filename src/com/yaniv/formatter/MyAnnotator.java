@@ -33,7 +33,7 @@ public class MyAnnotator implements Annotator {
       return;
     }
     
-    if (psiElement instanceof PsiSwitchLabelStatement) {
+    /*if (psiElement instanceof PsiSwitchLabelStatement) {
       PsiExpression caseValue = ((PsiSwitchLabelStatement) psiElement).getCaseValue();
       
       if (caseValue instanceof PsiParenthesizedExpression) {
@@ -45,15 +45,15 @@ public class MyAnnotator implements Annotator {
           }
         });
       }
-    }
+    }*/
     
-    if (psiElement.getNode().getElementType() == TokenType.WHITE_SPACE) {
+    /*if (psiElement.getNode().getElementType() == TokenType.WHITE_SPACE) {
       if (isControlStatement(psiElement.getNextSibling()) && !(psiElement.getParent() instanceof PsiIfStatement)) {
         checkEmptyLines(annotationHolder, psiElement, psiElement.getPrevSibling(), "Basmach Standard: No empty lines before a control statement at the start of a code block", "Basmach Standard: One empty line before a control statement");
       } else if (isControlStatement(psiElement.getPrevSibling())) {
         checkEmptyLines(annotationHolder, psiElement, psiElement.getNextSibling(), "Basmach Standard: No empty lines after a control statement at the end of a code block", "Basmach Standard: One empty line after a control statement");
       }
-    }
+    }*/
     
     if (psiElement instanceof PsiVariable) {
       String name = ((PsiVariable) psiElement).getName();
